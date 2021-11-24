@@ -1,0 +1,24 @@
+{
+  "name": "messaging-service-node14-es2020",
+  "version": "0.0.1",
+  "description": "Setup of a simple service targetting Node14 with ESM",
+  "scripts": {
+    "test": "nyc mocha --loader=quibble --timeout 4000"
+  },
+  "engines": {
+    "node": "14"
+  },
+  "main": "src/index.js",
+  "devDependencies": {
+    "eslint": "^8.2.0",
+    "eslint-plugin-import": "^2.25.3",
+    "eslint-plugin-mocha": "^9.0.0",
+    "mocha": "^9.1.3",
+    "nyc": "^15.1.0",
+    "should": "^13.2.3",
+    "quibble": "^0.6.6",
+    "sinon": "^12.0.1"
+  },
+  "type": "module",
+  "private": true
+}

@@ -1,0 +1,15 @@
+{
+  "extends": ["plugin:mocha/recommended"],
+  "env": {
+    "mocha": true
+  },
+  "globals": {
+    "assert": true,
+    "expect": true,
+    "sinon": true
+  },
+  "plugins": ["mocha"],
+  "rules": {
+    "mocha/no-setup-in-describe": "warn"
+  }
+}

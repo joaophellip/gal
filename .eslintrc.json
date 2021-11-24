@@ -1,0 +1,16 @@
+{
+  "env": {
+    "es2020": true,
+    "node": true
+  },
+  "rules": {
+    "camelcase": "warn",
+    "no-unused-vars": "warn",
+    "space-before-function-paren": ["error", "always"]
+  },
+  "extends": ["eslint:recommended"],
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module"
+  }
+}

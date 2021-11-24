@@ -1,0 +1,6 @@
+jobs:
+  test:
+    container: node:14-alpine
+    steps:
+      - run: npm ci
+      - run: npm run test
