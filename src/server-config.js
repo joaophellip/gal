@@ -2,29 +2,23 @@ import { Logger } from './logger.js'
 import { tokenValidation } from './middleware/authorization.js'
 import Messenger from './modules/messenger.js'
 
-let managerSocket
-
-export { managerSocket }
-
 export function handler (ioServer) {
 
   // validates auth token
   ioServer.use(tokenValidation)
 
-  // hooks callback for connections
+  // hooks entrypoint callback for event 'connection'
   ioServer.on('connection', socket => {
 
     Logger.info(`connecting client through socket ${socket.id}.`)
 
-    managerSocket = socket
-
+    // hooks callbacks for events 'new_message' and 'message_read'
     socket.on('new_message', Messenger.handlerNewMessage)
     socket.on('message_read', Messenger.handlerMessageRead)
 
+    // hooks callback for event 'disconnect'
     socket.on('disconnect', reason => {
       Logger.info(`disconnection reason: ${reason}`)
-      Messenger.handlerDisconnect()
-      managerSocket = undefined
     })
 
   })
