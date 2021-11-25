@@ -32,7 +32,7 @@ function createClient (token) {
 
 describe('Listen for event "message_read"', function () {
 
-    let TEST_TOKENS, server
+    let TEST_TOKENS, server, activeChatsStub, messagesStub
 
     before(async function () {
       process.env.ENV = 'TESTING'
@@ -48,8 +48,10 @@ describe('Listen for event "message_read"', function () {
       delete process.env.AUTH_TOKEN
     })
 
-    beforeEach(function () {
+    beforeEach(async function () {
+      [activeChatsStub, messagesStub] = [{}, {}]
       server = new HttpServer.Server(ExpressApp())
+      await quibble.esm('../../src/modules/database.js', {activeChats: activeChatsStub, messages: messagesStub})
     })
 
     afterEach(function () {

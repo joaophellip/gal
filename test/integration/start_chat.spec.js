@@ -32,7 +32,7 @@ function createClient (token) {
 
 describe('Listen for event "start_chat"', function () {
 
-    let TEST_TOKENS, server
+    let TEST_TOKENS, server, activeChatsStub, messagesStub, sentDataStub, clientSocketsStub
 
     before(async function () {
       process.env.ENV = 'TESTING'
@@ -48,8 +48,11 @@ describe('Listen for event "start_chat"', function () {
       delete process.env.AUTH_TOKEN
     })
 
-    beforeEach(function () {
+    beforeEach(async function () {
+      [activeChatsStub, messagesStub, sentDataStub, clientSocketsStub] = [{}, {}, [], {}]
       server = new HttpServer.Server(ExpressApp())
+      await quibble.esm('../../src/modules/database.js', {activeChats: activeChatsStub,
+        messages: messagesStub, sentData: sentDataStub, clientSockets: clientSocketsStub})
     })
 
     afterEach(function () {
@@ -77,9 +80,11 @@ describe('Listen for event "start_chat"', function () {
           client.emit('start_chat', clientID, inputData,
             (messageProcessed) => {
               messageProcessed.should.equal(true)
+              Object.keys(messagesStub).should.have.length(1)
+              Object.keys(activeChatsStub).should.have.length(1)
               client.disconnect()
             }
-          )  
+          )
         })
 
       })
@@ -111,7 +116,7 @@ describe('Listen for event "start_chat"', function () {
 
       })
     })
-    
+
     describe('receives event "start_chat" from a client an unexpectedly fails to process it', function () {
       it('should emit false in the callback interface back to client', async function () {
 

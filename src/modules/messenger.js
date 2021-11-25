@@ -15,13 +15,16 @@
 import { Logger } from '../util/logger.js'
 import { messageReadInputData, newMessageInputData, startChatInputData } from "../model/messaging.schemas.js"
 import Ajv from 'ajv'
+import crypto from 'crypto'
+import { Message } from '../model/Message.js'
+import * as Database from './database.js'
 const ajv = new Ajv({ allErrors: true, validateSchema: false })
 
 /**
  * Class that implements the business logic for events 'start_chat', 'new_message', and 'message_read'.
  */
 export default class Messenger {
-  
+
     /**
      * Handles event 'start_chat'. If processing is succesfull invoke callback passing true; false otherwise.
      * @param {*} senderID - the consumer/sender ID received from downstreams.
@@ -35,7 +38,13 @@ export default class Messenger {
             const isValid = Messenger.#validateData(data, startChatInputData)
             if (!isValid) callback(false)
 
-            // TODO: save somewhere non persistent; only allow 1 chat pert sender;
+            // start internal structures
+            const chatID = crypto.randomBytes(20).toString('hex')
+            Database.activeChats[chatID] = [senderID, data.counterpartyID]
+            Database.messages[chatID] = []
+            Database.clientSockets[senderID] = this
+            Database.clientSockets[data.counterpartyID] = this
+
             callback(true)
 
         } catch (err) {
@@ -57,7 +66,15 @@ export default class Messenger {
             const isValid = Messenger.#validateData(data, newMessageInputData)
             if (!isValid) callback(false)
 
-            // TODO: update somewhere non persistent; then update downstream;
+            // save new message
+            const message = new Message(data.chatID, senderID, 'someone', data.content)
+            Database.messages[data.chatID].push(message)
+
+            // send message obj downstream
+            Database.activeChats[data.chatID].forEach( (participant) => {
+                Messenger.#sendDataDownstream(participant, message, 'message_update')
+            })
+
             callback(true)
 
         } catch (err) {
@@ -78,7 +95,7 @@ export default class Messenger {
             const isValid = Messenger.#validateData(data, messageReadInputData)
             if (!isValid) callback(false)
 
-            // TODO: update somewhere non persistent; then update downstream;
+            // TODO: mutate message; then update downstreams;
             callback(true)
 
         } catch (err) {
@@ -87,8 +104,17 @@ export default class Messenger {
         }
     }
 
+    static #sendDataDownstream (target, data, event) {
+        const socket = Database.clientSockets[target]
+        const key = `${target}_${data.id}`
+        const chatID = data.chatID
+        if (socket != null && !Database.sentData.includes(key)) {
+            Database.sentData.push(key)
+            socket.emit(event, chatID, data)
+        }
+    }
+
     static #validateData (data, schema) {
-        const validate = ajv.compile(schema)
-        return validate(data)
+        return ajv.compile(schema)(data)
     }
 }

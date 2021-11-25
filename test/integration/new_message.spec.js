@@ -32,7 +32,7 @@ function createClient (token) {
 
 describe('Listen for event "new_message"', function () {
 
-    let TEST_TOKENS, server
+    let TEST_TOKENS, server, activeChatsStub, messagesStub
 
     before(async function () {
       process.env.ENV = 'TESTING'
@@ -48,11 +48,15 @@ describe('Listen for event "new_message"', function () {
       delete process.env.AUTH_TOKEN
     })
 
-    beforeEach(function () {
+    beforeEach(async function () {
+      [activeChatsStub, messagesStub] = [{}, {}]
       server = new HttpServer.Server(ExpressApp())
+      await quibble.esm('../../src/modules/database.js', {activeChats: activeChatsStub, messages: messagesStub})
     })
 
     afterEach(function () {
+      activeChatsStub = {}
+      messagesStub = {}
       server.close()
       quibble.reset()
     });
@@ -66,13 +70,16 @@ describe('Listen for event "new_message"', function () {
           content: 'Hi There'
         }
 
+        messagesStub[inputData.chatID] = []
+        activeChatsStub[inputData.chatID] = []
+
         const Module = await import('../../src/server-config.js')
         const ioServer = new IOServer.Server(server, { cookie: false })
         Module.ServerConfig.handler(ioServer)
         server.listen(8080)
 
         const client = createClient(TEST_TOKENS.valid_token)
-
+        
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
           client.emit('new_message', clientID, inputData,
@@ -80,7 +87,7 @@ describe('Listen for event "new_message"', function () {
               messageProcessed.should.equal(true)
               client.disconnect()
             }
-          )  
+          )
         })
 
       })
