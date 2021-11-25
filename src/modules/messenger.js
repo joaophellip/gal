@@ -18,6 +18,7 @@ import Ajv from 'ajv'
 import crypto from 'crypto'
 import { Message } from '../model/Message.js'
 import * as Database from './database.js'
+import { ServerConfig } from '../server-config.js'
 const ajv = new Ajv({ allErrors: true, validateSchema: false })
 
 /**
@@ -25,7 +26,22 @@ const ajv = new Ajv({ allErrors: true, validateSchema: false })
  */
 export default class Messenger {
 
-    static clientSockets = {}
+    /**
+     * Handles event 'sync'. If processing is succesfull invoke callback passing true; false otherwise.
+     * Note: clientID might be passed along in handshake so to avoid this sync extra event.
+     * @param {*} clientID - the consumer/client ID received from downstream.
+     * @param {*} callback - callback to be invoked.
+     */
+    static handlerSync (clientID, callback) {
+        try {
+            // update socket IO reference
+            ServerConfig.clientSockets[clientID] = this
+            callback(true)
+        } catch (err) {
+            Logger.error(err)
+            callback(false)
+        }      
+    }
 
     /**
      * Handles event 'start_chat'. If processing is succesfull invoke callback passing true; false otherwise.
@@ -44,8 +60,6 @@ export default class Messenger {
             const chatID = crypto.randomBytes(20).toString('hex')
             Database.activeChats[chatID] = [senderID, data.counterpartyID]
             Database.messages[chatID] = []
-            Messenger.clientSockets[senderID] = this
-            Messenger.clientSockets[data.counterpartyID] = this
 
             callback(true, chatID)
 
@@ -112,7 +126,7 @@ export default class Messenger {
      * @param {*} data - the data to be sent to the consumer. Usually a list of messages associated to that consumer.
      */
     static #sendDataDownstream (target, data) {
-        const socket = Messenger.clientSockets[target]
+        const socket = ServerConfig.clientSockets[target]
         const chatID = data[0].chatID
         if (socket != null) socket.emit('message_update', chatID, data)
     }

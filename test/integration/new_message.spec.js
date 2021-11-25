@@ -67,42 +67,6 @@ describe('Listener event "new_message"', function () {
       quibble.reset()
     });
 
-    describe('receives event "new_message" from a client and sucessfully processes it', function () {
-      it('should emit true in the callback interface back to client', async function () {
-        // generate test data
-        const clientID = crypto.randomBytes(20).toString('hex')
-        const inputData = {
-          chatID: null,
-          content: 'Hi There'
-        }
-
-        // start server and connect client
-        await startServer(server)
-        const client = createClient(TEST_TOKENS.valid_token)
-
-        // register handlers and emit events
-        return new Promise((rs, _) => {
-          client.on('disconnect', () => {rs()})
-          client.on('message_update', (chatID, data) => {
-            chatID.should.equal(inputData.chatID)
-            data.should.be.an.Array().and.have.length(1)
-            client.disconnect()
-          })
-          // first, we start a chat
-          client.emit('start_chat', clientID, {counterpartyID: crypto.randomBytes(20).toString('hex')}, (...data) => {
-            inputData.chatID = data[1]  // sync chatID created at server
-            // then, we emit a new message
-            client.emit('new_message', clientID, inputData,
-              (messageProcessed) => {
-                messageProcessed.should.equal(true)
-              }
-            )
-          })
-        })
-
-      })
-    })
-
     describe('receives event "new_message" from a client with an expected data structure', function () {
       it('should emit false in the callback interface back to client', async function () {
         // generate test data
@@ -160,4 +124,101 @@ describe('Listener event "new_message"', function () {
 
       })
     })
+
+    describe('receives event "new_message" from a client and sucessfully processes it', function () {
+      it('should emit true in the callback interface back to client; and should receive event "message_update"', async function () {
+        // generate test data
+        const clientID = crypto.randomBytes(20).toString('hex')
+        const inputData = {
+          chatID: null,
+          content: 'Hi There'
+        }
+
+        // start server and connect client
+        await startServer(server)
+        const client = createClient(TEST_TOKENS.valid_token)
+
+        // register handlers and emit events
+        return new Promise((rs, _) => {
+          client.on('disconnect', () => {rs()})
+          client.on('message_update', (chatID, data) => {
+            chatID.should.equal(inputData.chatID)
+            data.should.be.an.Array().and.have.length(1)
+            client.disconnect()
+          })
+          // first, we must sync and start a chat
+          client.emit('sync', clientID, (messageProcessed) => {
+            messageProcessed.should.equal(true)
+          })
+          client.emit('start_chat', clientID, {counterpartyID: crypto.randomBytes(20).toString('hex')}, (...data) => {
+            inputData.chatID = data[1]  // sync chatID created at server
+            // then, we emit a new message
+            client.emit('new_message', clientID, inputData,
+              (messageProcessed) => {
+                messageProcessed.should.equal(true)
+              }
+            )
+          })
+        })
+
+      })
+    })
+
+    describe('receives two events "new_message" from same client and sucessfully processes it', function () {
+      it('should emit true in the callback interface back to client; and should receive event "message_update"', async function () {
+        // generate test data
+        const clientID = crypto.randomBytes(20).toString('hex')
+        const inputData = [
+          {
+            chatID: null,
+            content: 'Hi There'
+          },
+          {
+            chatID: null,
+            content: 'Can we talk?'
+          }
+        ]
+
+        // start server and connect client
+        await startServer(server)
+        const client = createClient(TEST_TOKENS.valid_token)
+
+        // register handlers and emit events
+        return new Promise((rs, _) => {
+          client.on('disconnect', () => {rs()})
+          let messagesProcessed = 0
+          client.on('message_update', (chatID, data) => {
+            chatID.should.equal(inputData[0].chatID)
+            if (messagesProcessed == 0) {
+              data.should.be.an.Array().and.have.length(1)
+            } else if (messagesProcessed == 1) {
+              data.should.be.an.Array().and.have.length(2)
+              client.disconnect()
+            }
+            messagesProcessed += 1
+          })
+          // first, we must sync and start a chat
+          client.emit('sync', clientID, (messageProcessed) => {
+            messageProcessed.should.equal(true)
+          })
+          client.emit('start_chat', clientID, {counterpartyID: crypto.randomBytes(20).toString('hex')}, (...data) => {
+            inputData[0].chatID = data[1]  // sync chatID created at server
+            inputData[1].chatID = data[1]  // sync chatID created at server
+            // then, we emit new messages
+            client.emit('new_message', clientID, inputData[0],
+              (messageProcessed) => {
+                messageProcessed.should.equal(true)
+              }
+            )
+            client.emit('new_message', clientID, inputData[1],
+              (messageProcessed) => {
+                messageProcessed.should.equal(true)
+              }
+            )
+          })
+        })
+
+      })
+    })
+
 })

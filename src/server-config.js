@@ -24,6 +24,8 @@ import Messenger from './modules/messenger.js'
  */
 export class ServerConfig {
 
+  static clientSockets = {}
+
   static handler (ioServer) {
 
     // validates auth token
@@ -33,8 +35,9 @@ export class ServerConfig {
     ioServer.on('connection', socket => {
   
       Logger.info(`connecting consumer through socket ${socket.id}.`)
-  
+
       // hooks callbacks for business events
+      socket.on('sync', Messenger.handlerSync)
       socket.on('start_chat', Messenger.handlerStartChat)
       socket.on('new_message', Messenger.handlerNewMessage)
       socket.on('message_read', Messenger.handlerMessageRead)
