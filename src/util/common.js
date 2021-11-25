@@ -12,18 +12,6 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-import { Logger } from '../util/logger.js'
-import * as common from '../util/common.js'
-
-export class Authorization {
-
-  static tokenValidation (socket, next) {
-    Logger.debug(`tokenValidation: ${socket.handshake.query.auth_token} ${common.authorizationToken}`)
-    if (socket.handshake.query.auth_token == common.authorizationToken) {
-      return next()
-    }
-    Logger.error('Unauthorized manager.')
-    next(new Error('Authentication error'))
-  }
-
-}
+// export env variables to modules
+export const authorizationToken = process.env.AUTH_TOKEN;
+export const env = process.env.ENV;
