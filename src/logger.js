@@ -1,7 +1,7 @@
 import * as bunyan from 'bunyan'
 
 class LoggerWrapper {
-  
+
   constructor () {
     const streams = [
       {

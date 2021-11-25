@@ -1,11 +1,11 @@
 import { Logger } from './logger.js'
-import { tokenValidation } from './middleware/authorization.js'
+import { Authorization } from './middleware/authorization.js'
 import Messenger from './modules/messenger.js'
 
 export function handler (ioServer) {
 
   // validates auth token
-  ioServer.use(tokenValidation)
+  ioServer.use(Authorization.tokenValidation)
 
   // hooks entrypoint callback for event 'connection'
   ioServer.on('connection', socket => {
