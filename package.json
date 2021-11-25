@@ -4,7 +4,7 @@
   "description": "Setup of a simple service targetting Node14 with ESM",
   "main": "src/index.js",
   "scripts": {
-    "test": "nyc mocha --loader=quibble --timeout 4000"
+    "test": "nyc mocha --recursive --loader=quibble --timeout 4000"
   },
   "engines": {
     "node": "14"

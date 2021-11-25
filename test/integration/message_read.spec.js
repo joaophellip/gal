@@ -1,5 +1,5 @@
 import 'should'
-import SocketClient from 'socket.io-client'
+import * as SocketClient from 'socket.io-client'
 import * as IOServer from 'socket.io'
 import ExpressApp from 'express'
 import HttpServer from 'http'
@@ -27,7 +27,7 @@ describe('Listen for event "message read"', function () {
         // eslint-disable-next-line camelcase
         invalid_token: "test_wrong_token",
       };
-      ServerConfig = await import('../src/server-config.js')
+      ServerConfig = await import('../../src/server-config.js')
     })
 
     after(function () {
@@ -48,6 +48,7 @@ describe('Listen for event "message read"', function () {
 
         const clientID = crypto.randomBytes(20).toString('hex')
         const inputData = {
+          chatID: crypto.randomBytes(10).toString('hex'),
           messageID: crypto.randomBytes(10).toString('hex')
         }
 
@@ -59,7 +60,7 @@ describe('Listen for event "message read"', function () {
 
         client.on('disconnect', () => {done()})
 
-        client.emit('message_read', clientID, JSON.stringify(inputData),
+        client.emit('message_read', clientID, inputData,
           (messageProcessed) => {
             messageProcessed.should.equal(true)
             client.disconnect()
