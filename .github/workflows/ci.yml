@@ -4,7 +4,10 @@ on: [push, pull_request]
 
 jobs:
   test:
-    container: node:14-alpine
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['14']
     steps:
       - run: npm ci
       - run: npm run test
