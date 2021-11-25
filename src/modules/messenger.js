@@ -1,11 +1,11 @@
 //  Copyright 2021 joaophellip
- 
+
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
 //  You may obtain a copy of the License at
- 
+
 //      http://www.apache.org/licenses/LICENSE-2.0
- 
+
 //  Unless required by applicable law or agreed to in writing, software
 //  distributed under the License is distributed on an "AS IS" BASIS,
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,6 +25,8 @@ const ajv = new Ajv({ allErrors: true, validateSchema: false })
  */
 export default class Messenger {
 
+    static clientSockets = {}
+
     /**
      * Handles event 'start_chat'. If processing is succesfull invoke callback passing true; false otherwise.
      * @param {*} senderID - the consumer/sender ID received from downstreams.
@@ -38,14 +40,14 @@ export default class Messenger {
             const isValid = Messenger.#validateData(data, startChatInputData)
             if (!isValid) callback(false)
 
-            // start internal structures
+            // init internal structures and live bindings
             const chatID = crypto.randomBytes(20).toString('hex')
             Database.activeChats[chatID] = [senderID, data.counterpartyID]
             Database.messages[chatID] = []
-            Database.clientSockets[senderID] = this
-            Database.clientSockets[data.counterpartyID] = this
+            Messenger.clientSockets[senderID] = this
+            Messenger.clientSockets[data.counterpartyID] = this
 
-            callback(true)
+            callback(true, chatID)
 
         } catch (err) {
             Logger.error(err)
@@ -67,12 +69,12 @@ export default class Messenger {
             if (!isValid) callback(false)
 
             // save new message
-            const message = new Message(data.chatID, senderID, 'someone', data.content)
+            const message = new Message(data.chatID, senderID, data.content)
             Database.messages[data.chatID].push(message)
 
             // send message obj downstream
             Database.activeChats[data.chatID].forEach( (participant) => {
-                Messenger.#sendDataDownstream(participant, message, 'message_update')
+                Messenger.#sendDataDownstream(participant, Database.messages[data.chatID])
             })
 
             callback(true)
@@ -104,16 +106,22 @@ export default class Messenger {
         }
     }
 
-    static #sendDataDownstream (target, data, event) {
-        const socket = Database.clientSockets[target]
-        const key = `${target}_${data.id}`
-        const chatID = data.chatID
-        if (socket != null && !Database.sentData.includes(key)) {
-            Database.sentData.push(key)
-            socket.emit(event, chatID, data)
-        }
+    /**
+     * Sends a list of messages downstream via an open socketIO channel.
+     * @param {*} target - the consumer/sender ID in the receiving end.
+     * @param {*} data - the data to be sent to the consumer. Usually a list of messages associated to that consumer.
+     */
+    static #sendDataDownstream (target, data) {
+        const socket = Messenger.clientSockets[target]
+        const chatID = data[0].chatID
+        if (socket != null) socket.emit('message_update', chatID, data)
     }
 
+    /**
+     * Validates data object structure using with AJV.
+     * @param {*} data - data.
+     * @param {*} schema - an object representing an expected structure in AJV format.
+     */
     static #validateData (data, schema) {
         return ajv.compile(schema)(data)
     }

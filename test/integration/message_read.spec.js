@@ -30,11 +30,11 @@ function createClient (token) {
   });
 }
 
-describe('Listen for event "message_read"', function () {
+describe('Listener event "message_read"', function () {
 
-    let TEST_TOKENS, server, activeChatsStub, messagesStub
+    let TEST_TOKENS, server, activeChatsStub, messagesStub, sentDataStub
 
-    before(async function () {
+    before(function () {
       process.env.ENV = 'TESTING'
       process.env.AUTH_TOKEN = 'test_auth_token'
       TEST_TOKENS = {
@@ -49,9 +49,10 @@ describe('Listen for event "message_read"', function () {
     })
 
     beforeEach(async function () {
-      [activeChatsStub, messagesStub] = [{}, {}]
+      [activeChatsStub, messagesStub, sentDataStub] = [{}, {}, {}]
       server = new HttpServer.Server(ExpressApp())
-      await quibble.esm('../../src/modules/database.js', {activeChats: activeChatsStub, messages: messagesStub})
+      await quibble.esm('../../src/modules/database.js', {activeChats: activeChatsStub,
+        messages: messagesStub, sentData: sentDataStub})
     })
 
     afterEach(function () {

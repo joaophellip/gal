@@ -1,2 +1,2 @@
-// non persistent data structures to hold info about ongoing chats
-export const [activeChats, messages, sentData, clientSockets] = [{}, {}, [], {}]
+// non persistent data structures used to sync communication of ongoing chats
+export const [activeChats, messages, sentData] = [{}, {}, []]

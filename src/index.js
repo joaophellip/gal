@@ -37,7 +37,7 @@ ServerConfig.handler(ioServer)
 
 // adds baseline route
 app.get('/', function (_, res) {
-    res.status(200).send('Starting WebSocket connection...')
+    res.status(200).send('Starting SocketIO connection...')
 })
 
 // starts listening on port SERVER_PORT

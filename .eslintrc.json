@@ -4,13 +4,14 @@
     "node": true
   },
   "rules": {
+    "no-import-assign": "off",
     "camelcase": "warn",
     "no-unused-vars": ["warn", {"argsIgnorePattern": "^_"}],
     "space-before-function-paren": ["error", "always"]
   },
   "extends": ["eslint:recommended"],
   "parserOptions": {
-    "ecmaVersion": 2020,
+    "ecmaVersion": "latest",
     "sourceType": "module"
   }
 }

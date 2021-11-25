@@ -30,11 +30,18 @@ function createClient (token) {
   });
 }
 
-describe('Listen for event "new_message"', function () {
+async function startServer (server) {
+  const Module = await import('../../src/server-config.js')
+  const ioServer = new IOServer.Server(server, { cookie: false })
+  Module.ServerConfig.handler(ioServer)
+  server.listen(8080)
+}
 
-    let TEST_TOKENS, server, activeChatsStub, messagesStub
+describe('Listener event "new_message"', function () {
 
-    before(async function () {
+    let TEST_TOKENS, server, activeChatsStub, messagesStub, sentDataStub
+
+    before(function () {
       process.env.ENV = 'TESTING'
       process.env.AUTH_TOKEN = 'test_auth_token'
       TEST_TOKENS = {
@@ -49,45 +56,48 @@ describe('Listen for event "new_message"', function () {
     })
 
     beforeEach(async function () {
-      [activeChatsStub, messagesStub] = [{}, {}]
+      [activeChatsStub, messagesStub, sentDataStub] = [{}, [], []]
       server = new HttpServer.Server(ExpressApp())
-      await quibble.esm('../../src/modules/database.js', {activeChats: activeChatsStub, messages: messagesStub})
+      await quibble.esm('../../src/modules/database.js', {activeChats: activeChatsStub,
+        messages: messagesStub, sentData: sentDataStub})
     })
 
     afterEach(function () {
-      activeChatsStub = {}
-      messagesStub = {}
       server.close()
       quibble.reset()
     });
 
     describe('receives event "new_message" from a client and sucessfully processes it', function () {
       it('should emit true in the callback interface back to client', async function () {
-
+        // generate test data
         const clientID = crypto.randomBytes(20).toString('hex')
         const inputData = {
-          chatID: crypto.randomBytes(10).toString('hex'),
+          chatID: null,
           content: 'Hi There'
         }
 
-        messagesStub[inputData.chatID] = []
-        activeChatsStub[inputData.chatID] = []
-
-        const Module = await import('../../src/server-config.js')
-        const ioServer = new IOServer.Server(server, { cookie: false })
-        Module.ServerConfig.handler(ioServer)
-        server.listen(8080)
-
+        // start server and connect client
+        await startServer(server)
         const client = createClient(TEST_TOKENS.valid_token)
-        
+
+        // register handlers and emit events
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
-          client.emit('new_message', clientID, inputData,
-            (messageProcessed) => {
-              messageProcessed.should.equal(true)
-              client.disconnect()
-            }
-          )
+          client.on('message_update', (chatID, data) => {
+            chatID.should.equal(inputData.chatID)
+            data.should.be.an.Array().and.have.length(1)
+            client.disconnect()
+          })
+          // first, we start a chat
+          client.emit('start_chat', clientID, {counterpartyID: crypto.randomBytes(20).toString('hex')}, (...data) => {
+            inputData.chatID = data[1]  // sync chatID created at server
+            // then, we emit a new message
+            client.emit('new_message', clientID, inputData,
+              (messageProcessed) => {
+                messageProcessed.should.equal(true)
+              }
+            )
+          })
         })
 
       })
@@ -95,20 +105,17 @@ describe('Listen for event "new_message"', function () {
 
     describe('receives event "new_message" from a client with an expected data structure', function () {
       it('should emit false in the callback interface back to client', async function () {
-
+        // generate test data
         const clientID = crypto.randomBytes(20).toString('hex')
-        // misses property chatID
         const inputData = {
-          content: 'Hi There'
+          content: 'Hi There' // misses property chatID
         }
 
-        const Module = await import('../../src/server-config.js')
-        const ioServer = new IOServer.Server(server, { cookie: false })
-        Module.ServerConfig.handler(ioServer)
-        server.listen(8080)
-
+        // start server and connect client
+        await startServer(server)
         const client = createClient(TEST_TOKENS.valid_token)
 
+        // emit event and wait response
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
           client.emit('new_message', clientID, inputData,
@@ -124,24 +131,23 @@ describe('Listen for event "new_message"', function () {
     
     describe('receives event "new_message" from a client an unexpectedly fails to process it', function () {
       it('should emit false in the callback interface back to client', async function () {
-
+        // configure module mock to throw error
         const ajvStub = sinon.stub()
         ajvStub.returns({compile: () => sinon.stub().throws()})
         await quibble.esm('ajv', null, ajvStub)
 
+        // generate test data
         const clientID = crypto.randomBytes(20).toString('hex')
-        // misses property chatID
         const inputData = {
-          messageID: crypto.randomBytes(10).toString('hex')
+          chatID: crypto.randomBytes(10).toString('hex'),
+          content: 'Hi There'
         }
 
-        const Module = await import('../../src/server-config.js')
-        const ioServer = new IOServer.Server(server, { cookie: false })
-        Module.ServerConfig.handler(ioServer)
-        server.listen(8080)
-
+        // start server and connect client
+        await startServer(server)
         const client = createClient(TEST_TOKENS.valid_token)
 
+        // emit event and wait response
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
           client.emit('new_message', clientID, inputData,
