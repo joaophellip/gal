@@ -1,10 +1,10 @@
 import { Logger } from '../logger.js';
 
-export default class Message {
+export default class Messenger {
 
-    handlerNewMessage (_, callback) {
+    static handlerNewMessage (senderID, _, callback) {
         try {
-            Logger.info('new message')
+            Logger.info(`new message from ${senderID}`)
             callback(true)
         } catch (err) {
             Logger.error(err)
@@ -12,9 +12,9 @@ export default class Message {
         }
     }
 
-    handlerMessageRead (_, callback) {
+    static handlerMessageRead (senderID, _, callback) {
         try {
-            Logger.info('message read')
+            Logger.info(`message read by ${senderID}`)
             callback(true)
         } catch (err) {
             Logger.error(err)

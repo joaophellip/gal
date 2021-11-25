@@ -1,6 +1,6 @@
 {
   "name": "messaging-service-node14-es2020",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Setup of a simple service targetting Node14 with ESM",
   "main": "src/index.js",
   "scripts": {
@@ -24,7 +24,8 @@
     "nyc": "^15.1.0",
     "should": "^13.2.3",
     "quibble": "^0.6.6",
-    "sinon": "^12.0.1"
+    "sinon": "^12.0.1",
+    "socket.io-client": "^4.4.0"
   },
   "type": "module",
   "private": true,
