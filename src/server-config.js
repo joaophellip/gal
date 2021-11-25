@@ -16,17 +16,23 @@ import { Logger } from './util/logger.js'
 import { Authorization } from './middleware/authorization.js'
 import Messenger from './modules/messenger.js'
 
+/**
+ * Base Module where the socketIO server is configured. 
+ * 
+ * @param {*} ioServer - socket IO server object, to which callbacks are attached. Callbacks are hooked for those events
+ * to which server is expected to react.
+ */
 export function handler (ioServer) {
 
   // validates auth token
   ioServer.use(Authorization.tokenValidation)
 
-  // hooks entrypoint callback for event 'connection'
+  // hooks callback for main event 'connection'
   ioServer.on('connection', socket => {
 
-    Logger.info(`connecting client through socket ${socket.id}.`)
+    Logger.info(`connecting consumer through socket ${socket.id}.`)
 
-    // hooks callbacks for events 'new_message' and 'message_read'
+    // hooks callbacks for business events 'new_message' and 'message_read'
     socket.on('new_message', Messenger.handlerNewMessage)
     socket.on('message_read', Messenger.handlerMessageRead)
 

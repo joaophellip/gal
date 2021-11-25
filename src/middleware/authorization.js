@@ -15,8 +15,16 @@
 import { Logger } from '../util/logger.js'
 import * as common from '../util/common.js'
 
+/**
+ * Authentication middleware which will either accept or reject a connection based on the consumer's authentication token.
+ */
 export class Authorization {
 
+  /**
+   * Validates a token inside socket. If token is valid forward connection else rejects it.
+   * @param {*} socket - socket object containing an authentication token.
+   * @param {*} next - callback to either break logic for this route or continue to the next middleware.
+   */
   static tokenValidation (socket, next) {
     Logger.debug(`tokenValidation: ${socket.handshake.query.auth_token} ${common.authorizationToken}`)
     if (socket.handshake.query.auth_token == common.authorizationToken) {

@@ -13,5 +13,7 @@
 //  limitations under the License.
 
 // export env variables to modules
-export const authorizationToken = process.env.AUTH_TOKEN;
-export const env = process.env.ENV;
+export const authorizationToken = process.env.AUTH_TOKEN
+export const env = process.env.ENV
+export const serverPing = process.env.SERVER_PING
+export const serverPort = process.env.SERVER_PORT

@@ -19,12 +19,19 @@ import express from 'express'
 import { Server } from 'http'
 import { handler } from './server-config.js'
 import { Logger } from './util/logger.js'
+import { serverPing, serverPort } from './util/common.js'
+
+/**
+ * This script is the application entry point defined in the package.json. 
+ * 
+ * It will setup a socketIO server and start listening on a port specified by process.env.SERVER_PORT.
+ */
 
 // setup socketIO server
 const app = express()
 const server = new Server(app)
 const ioServer = new IOServer.Server(server, {
-    pingInterval: parseInt(process.env.SERVER_PING),
+    pingInterval: parseInt(serverPing),
 })
 handler(ioServer)
 
@@ -34,10 +41,6 @@ app.get('/', function (_, res) {
 })
 
 // starts listening on port SERVER_PORT
-server.listen(process.env.SERVER_PORT, function () {
-    Logger.debug(`listening on port ${process.env.SERVER_PORT}`)
+server.listen(serverPort, function () {
+    Logger.debug(`listening on port ${serverPort}`)
 })
-
-export function main () {
-    return 'Hello World'
-}

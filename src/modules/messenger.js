@@ -17,8 +17,17 @@ import { messageReadInputData, newMessageInputData } from "../model/messaging.sc
 import Ajv from 'ajv'
 const ajv = new Ajv({ allErrors: true, validateSchema: false })
 
+/**
+ * Class that implements the business logic for events 'new_message' and 'message_read'.
+ */
 export default class Messenger {
-
+    
+    /**
+     * Handles event 'new_message'. If processing is succesfull invoke callback passing true; false otherwise.
+     * @param {*} senderID - the consumer/sender ID received from downstreams.
+     * @param {*} data - the data sent by consumer. It has to match an expected schema.
+     * @param {*} callback - callback to be invoked.
+     */
     static handlerNewMessage (senderID, data, callback) {
         try {
             Logger.info(`processing new message from ${senderID}...`)
@@ -32,6 +41,12 @@ export default class Messenger {
         }
     }
 
+    /**
+     * Handles event 'message_read'. If processing is succesfull invoke callback passing true; false otherwise.
+     * @param {*} senderID - the consumer/sender ID received from downstreams.
+     * @param {*} data - the data sent by consumer. It has to match an expected schema.
+     * @param {*} callback - callback to be invoked.
+     */
     static handlerMessageRead (senderID, data, callback) {
         try {
             Logger.info(`processing message read from ${senderID}...`)
