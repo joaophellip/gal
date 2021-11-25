@@ -33,7 +33,7 @@ describe('Logger', function () {
             },
         ]
         bunyanStub.withArgs({
-            name: "messagingService",
+            name: "galMessagingService",
             streams: streams,
         }).returns({fatal: fatalStub, error: errorStub, warn: warnStub, info: infoStub, debug: debugStub, trace: traceStub})
         await quibble.esm('bunyan', {createLogger: bunyanStub})
