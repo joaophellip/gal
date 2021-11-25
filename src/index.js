@@ -17,7 +17,7 @@ dotConfig()
 import * as IOServer from 'socket.io'
 import express from 'express'
 import { Server } from 'http'
-import { handler } from './server-config.js'
+import { ServerConfig } from './server-config.js'
 import { Logger } from './util/logger.js'
 import { serverPing, serverPort } from './util/common.js'
 
@@ -33,7 +33,7 @@ const server = new Server(app)
 const ioServer = new IOServer.Server(server, {
     pingInterval: parseInt(serverPing),
 })
-handler(ioServer)
+ServerConfig.handler(ioServer)
 
 // adds baseline route
 app.get('/', function (_, res) {

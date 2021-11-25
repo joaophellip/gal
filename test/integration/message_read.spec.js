@@ -30,9 +30,9 @@ function createClient (token) {
   });
 }
 
-describe('Listen for event "message read"', function () {
+describe('Listen for event "message_read"', function () {
 
-    let TEST_TOKENS, server, ServerConfig
+    let TEST_TOKENS, server
 
     before(async function () {
       process.env.ENV = 'TESTING'
@@ -66,9 +66,9 @@ describe('Listen for event "message read"', function () {
           messageID: crypto.randomBytes(10).toString('hex')
         }
 
-        ServerConfig = await import('../../src/server-config.js')
+        const Module = await import('../../src/server-config.js')
         const ioServer = new IOServer.Server(server, { cookie: false })
-        ServerConfig.handler(ioServer)
+        Module.ServerConfig.handler(ioServer)
         server.listen(8080)
 
         const client = createClient(TEST_TOKENS.valid_token)
@@ -95,9 +95,9 @@ describe('Listen for event "message read"', function () {
           messageID: crypto.randomBytes(10).toString('hex')
         }
 
-        ServerConfig = await import('../../src/server-config.js')
+        const Module = await import('../../src/server-config.js')
         const ioServer = new IOServer.Server(server, { cookie: false })
-        ServerConfig.handler(ioServer)
+        Module.ServerConfig.handler(ioServer)
         server.listen(8080)
 
         const client = createClient(TEST_TOKENS.valid_token)
@@ -128,9 +128,9 @@ describe('Listen for event "message read"', function () {
           messageID: crypto.randomBytes(10).toString('hex')
         }
 
-        ServerConfig = await import('../../src/server-config.js')
+        const Module = await import('../../src/server-config.js')
         const ioServer = new IOServer.Server(server, { cookie: false })
-        ServerConfig.handler(ioServer)
+        Module.ServerConfig.handler(ioServer)
         server.listen(8080)
 
         const client = createClient(TEST_TOKENS.valid_token)

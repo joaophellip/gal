@@ -22,25 +22,30 @@ import Messenger from './modules/messenger.js'
  * @param {*} ioServer - socket IO server object, to which callbacks are attached. Callbacks are hooked for those events
  * to which server is expected to react.
  */
-export function handler (ioServer) {
+export class ServerConfig {
 
-  // validates auth token
-  ioServer.use(Authorization.tokenValidation)
+  static handler (ioServer) {
 
-  // hooks callback for main event 'connection'
-  ioServer.on('connection', socket => {
-
-    Logger.info(`connecting consumer through socket ${socket.id}.`)
-
-    // hooks callbacks for business events 'new_message' and 'message_read'
-    socket.on('new_message', Messenger.handlerNewMessage)
-    socket.on('message_read', Messenger.handlerMessageRead)
-
-    // hooks callback for event 'disconnect'
-    socket.on('disconnect', reason => {
-      Logger.info(`disconnection reason: ${reason}`)
+    // validates auth token
+    ioServer.use(Authorization.tokenValidation)
+  
+    // hooks callback for main event 'connection'
+    ioServer.on('connection', socket => {
+  
+      Logger.info(`connecting consumer through socket ${socket.id}.`)
+  
+      // hooks callbacks for business events
+      socket.on('start_chat', Messenger.handlerStartChat)
+      socket.on('new_message', Messenger.handlerNewMessage)
+      socket.on('message_read', Messenger.handlerMessageRead)
+  
+      // hooks callback for event 'disconnect'
+      socket.on('disconnect', reason => {
+        Logger.info(`disconnection reason: ${reason}`)
+      })
+  
     })
-
-  })
+  
+  }
 
 }

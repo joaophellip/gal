@@ -30,7 +30,7 @@ function createClient (token) {
   });
 }
 
-describe('Listen for event "new_message"', function () {
+describe('Listen for event "start_chat"', function () {
 
     let TEST_TOKENS, server
 
@@ -57,13 +57,12 @@ describe('Listen for event "new_message"', function () {
       quibble.reset()
     });
 
-    describe('receives event "new_message" from a client and sucessfully processes it', function () {
+    describe('receives event "start_chat" from a client and sucessfully processes it', function () {
       it('should emit true in the callback interface back to client', async function () {
 
         const clientID = crypto.randomBytes(20).toString('hex')
         const inputData = {
-          chatID: crypto.randomBytes(10).toString('hex'),
-          content: 'Hi There'
+          counterpartyID: crypto.randomBytes(10).toString('hex'),
         }
 
         const Module = await import('../../src/server-config.js')
@@ -75,7 +74,7 @@ describe('Listen for event "new_message"', function () {
 
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
-          client.emit('new_message', clientID, inputData,
+          client.emit('start_chat', clientID, inputData,
             (messageProcessed) => {
               messageProcessed.should.equal(true)
               client.disconnect()
@@ -86,14 +85,12 @@ describe('Listen for event "new_message"', function () {
       })
     })
 
-    describe('receives event "new_message" from a client with an expected data structure', function () {
+    describe('receives event "start_chat" from a client with an expected data structure', function () {
       it('should emit false in the callback interface back to client', async function () {
 
         const clientID = crypto.randomBytes(20).toString('hex')
-        // misses property chatID
-        const inputData = {
-          content: 'Hi There'
-        }
+        // empty data
+        const inputData = {}
 
         const Module = await import('../../src/server-config.js')
         const ioServer = new IOServer.Server(server, { cookie: false })
@@ -104,7 +101,7 @@ describe('Listen for event "new_message"', function () {
 
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
-          client.emit('new_message', clientID, inputData,
+          client.emit('start_chat', clientID, inputData,
             (messageProcessed) => {
               messageProcessed.should.equal(false)
               client.disconnect()
@@ -115,7 +112,7 @@ describe('Listen for event "new_message"', function () {
       })
     })
     
-    describe('receives event "new_message" from a client an unexpectedly fails to process it', function () {
+    describe('receives event "start_chat" from a client an unexpectedly fails to process it', function () {
       it('should emit false in the callback interface back to client', async function () {
 
         const ajvStub = sinon.stub()
@@ -123,10 +120,8 @@ describe('Listen for event "new_message"', function () {
         await quibble.esm('ajv', null, ajvStub)
 
         const clientID = crypto.randomBytes(20).toString('hex')
-        // misses property chatID
-        const inputData = {
-          messageID: crypto.randomBytes(10).toString('hex')
-        }
+        // empty data
+        const inputData = {}
 
         const Module = await import('../../src/server-config.js')
         const ioServer = new IOServer.Server(server, { cookie: false })
@@ -137,7 +132,7 @@ describe('Listen for event "new_message"', function () {
 
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
-          client.emit('new_message', clientID, inputData,
+          client.emit('start_chat', clientID, inputData,
             (messageProcessed) => {
               messageProcessed.should.equal(false)
               client.disconnect()
