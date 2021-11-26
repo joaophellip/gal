@@ -27,7 +27,7 @@ function createClient (token) {
     autoConnect: true,
     // eslint-disable-next-line camelcase
     query: { auth_token: token },
-  });
+  })
 }
 
 async function startServer (server) {
@@ -39,7 +39,7 @@ async function startServer (server) {
 
 describe('Listener event "new_message"', function () {
 
-    let TEST_TOKENS, server, activeChatsStub, messagesStub, sentDataStub
+    let TEST_TOKENS, server, activeChatsStub, messagesStub, messagesMapStub, sentDataStub
 
     before(function () {
       process.env.ENV = 'TESTING'
@@ -56,10 +56,10 @@ describe('Listener event "new_message"', function () {
     })
 
     beforeEach(async function () {
-      [activeChatsStub, messagesStub, sentDataStub] = [{}, [], []]
+      [activeChatsStub, messagesStub, messagesMapStub, sentDataStub] = [{}, [], {}, []]
       server = new HttpServer.Server(ExpressApp())
       await quibble.esm('../../src/modules/database.js', {activeChats: activeChatsStub,
-        messages: messagesStub, sentData: sentDataStub})
+        messages: messagesStub, messagesMap: messagesMapStub, sentData: sentDataStub})
     })
 
     afterEach(function () {

@@ -10,5 +10,6 @@ export class Message {
         this.from = from
         this.content = content
         this.id = crypto.randomBytes(10).toString('hex')
+        this.readyBy = []
     }
 }

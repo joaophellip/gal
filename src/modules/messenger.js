@@ -85,8 +85,9 @@ export default class Messenger {
             // save new message
             const message = new Message(data.chatID, senderID, data.content)
             Database.messages[data.chatID].push(message)
+            Database.messagesMap[message.id] = message
 
-            // send message obj downstream
+            // update chat participants with up-to-date messages
             Database.activeChats[data.chatID].forEach( (participant) => {
                 Messenger.#sendDataDownstream(participant, Database.messages[data.chatID])
             })
@@ -107,11 +108,20 @@ export default class Messenger {
      */
     static handlerMessageRead (senderID, data, callback) {
         try {
+            // validate data
             Logger.info(`processing message read from ${senderID}...`)
             const isValid = Messenger.#validateData(data, messageReadInputData)
             if (!isValid) callback(false)
 
-            // TODO: mutate message; then update downstreams;
+            // add senderID to readby list
+            Database.messages[data.chatID]
+            Database.messagesMap[data.messageID].readyBy.push(senderID)
+
+            // update chat participants with up-to-date messages
+            Database.activeChats[data.chatID].forEach( (participant) => {
+                Messenger.#sendDataDownstream(participant, Database.messages[data.chatID])
+            })
+
             callback(true)
 
         } catch (err) {
