@@ -16,3 +16,5 @@
 
 # gal
 small messaging service in NodeJS 
+
+![tests](https://github.com/joaophellip/gal/actions/workflows/ci.yml/badge.svg)

@@ -1,3 +1,13 @@
+export const startChatInputData = {
+  type: 'object',
+  required: ['counterpartyID'],
+  properties: {
+    counterpartyID: {
+      type: 'string'
+    }
+  }
+}
+
 export const newMessageInputData = {
   type: 'object',
   required: ['content', 'chatID'],
