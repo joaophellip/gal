@@ -113,7 +113,7 @@ export default class Messenger {
             const isValid = Messenger.#validateData(data, messageReadInputData)
             if (!isValid) callback(false)
 
-            // add senderID to readby list
+            // add senderID to readBy list
             Database.messages[data.chatID]
             Database.messagesMap[data.messageID].readyBy.push(senderID)
 
