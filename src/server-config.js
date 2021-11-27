@@ -30,18 +30,19 @@ export class ServerConfig {
 
     // validates auth token
     ioServer.use(Authorization.tokenValidation)
-  
+
     // hooks callback for main event 'connection'
     ioServer.on('connection', socket => {
-  
-      Logger.info(`connecting consumer through socket ${socket.id}.`)
+
+      const clientID = socket.handshake.headers.clientid
+      Logger.info(`connecting ${clientID} through socket ${socket.id}.`)
+      ServerConfig.clientSockets[clientID] = socket
 
       // hooks callbacks for business events
-      socket.on('sync', Messenger.handlerSync)
       socket.on('start_chat', Messenger.handlerStartChat)
       socket.on('new_message', Messenger.handlerNewMessage)
       socket.on('message_read', Messenger.handlerMessageRead)
-  
+
       // hooks callback for event 'disconnect'
       socket.on('disconnect', reason => {
         Logger.info(`disconnection reason: ${reason}`)

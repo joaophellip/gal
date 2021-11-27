@@ -21,12 +21,18 @@ import crypto from 'crypto'
 import quibble from 'quibble'
 import * as sinon from "sinon"
 
-function createClient (token) {
+function createClient (clientID, token) {
   return SocketClient.connect('http://localhost:8080', {
     forceNew: true,
     autoConnect: true,
-    // eslint-disable-next-line camelcase
-    query: { auth_token: token },
+    transportOptions: {
+      polling: {
+        extraHeaders: {
+          authorization: `Bearer ${token}`,
+          clientid: clientID
+        }
+      }
+    }
   })
 }
 
@@ -45,8 +51,7 @@ describe('Listener event "new_message"', function () {
       process.env.ENV = 'TESTING'
       process.env.AUTH_TOKEN = 'test_auth_token'
       TEST_TOKENS = {
-        // eslint-disable-next-line camelcase
-        valid_token: process.env.AUTH_TOKEN
+        validToken: process.env.AUTH_TOKEN
       }
     })
 
@@ -65,7 +70,7 @@ describe('Listener event "new_message"', function () {
     afterEach(function () {
       server.close()
       quibble.reset()
-    });
+    })
 
     describe('receives event "new_message" from a client with an expected data structure', function () {
       it('should emit false in the callback interface back to client', async function () {
@@ -77,14 +82,17 @@ describe('Listener event "new_message"', function () {
 
         // start server and connect client
         await startServer(server)
-        const client = createClient(TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.validToken)
 
         // emit event and wait response
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
-          client.emit('new_message', clientID, inputData,
-            (messageProcessed) => {
+          client.emit('new_message', inputData,
+            (...data) => {
+              const messageProcessed = data[0]
+              const err = data[1]
               messageProcessed.should.equal(false)
+              err.content.should.equal('Unexpected data. Please send a valid data object')
               client.disconnect()
             }
           )
@@ -109,12 +117,12 @@ describe('Listener event "new_message"', function () {
 
         // start server and connect client
         await startServer(server)
-        const client = createClient(TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.validToken)
 
         // emit event and wait response
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
-          client.emit('new_message', clientID, inputData,
+          client.emit('new_message', inputData,
             (messageProcessed) => {
               messageProcessed.should.equal(false)
               client.disconnect()
@@ -136,7 +144,7 @@ describe('Listener event "new_message"', function () {
 
         // start server and connect client
         await startServer(server)
-        const client = createClient(TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.validToken)
 
         // register handlers and emit events
         return new Promise((rs, _) => {
@@ -146,14 +154,11 @@ describe('Listener event "new_message"', function () {
             data.should.be.an.Array().and.have.length(1)
             client.disconnect()
           })
-          // first, we must sync and start a chat
-          client.emit('sync', clientID, (messageProcessed) => {
-            messageProcessed.should.equal(true)
-          })
-          client.emit('start_chat', clientID, {counterpartyID: crypto.randomBytes(20).toString('hex')}, (...data) => {
+          // first, we must start a chat
+          client.emit('start_chat', {counterpartyID: crypto.randomBytes(20).toString('hex')}, (...data) => {
             inputData.chatID = data[1]  // sync chatID created at server
             // then, we emit a new message
-            client.emit('new_message', clientID, inputData,
+            client.emit('new_message', inputData,
               (messageProcessed) => {
                 messageProcessed.should.equal(true)
               }
@@ -181,7 +186,7 @@ describe('Listener event "new_message"', function () {
 
         // start server and connect client
         await startServer(server)
-        const client = createClient(TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.validToken)
 
         // register handlers and emit events
         return new Promise((rs, _) => {
@@ -197,20 +202,17 @@ describe('Listener event "new_message"', function () {
             }
             messagesProcessed += 1
           })
-          // first, we must sync and start a chat
-          client.emit('sync', clientID, (messageProcessed) => {
-            messageProcessed.should.equal(true)
-          })
-          client.emit('start_chat', clientID, {counterpartyID: crypto.randomBytes(20).toString('hex')}, (...data) => {
+          // first, we must start a chat
+          client.emit('start_chat', {counterpartyID: crypto.randomBytes(20).toString('hex')}, (...data) => {
             inputData[0].chatID = data[1]  // sync chatID created at server
             inputData[1].chatID = data[1]  // sync chatID created at server
             // then, we emit new messages
-            client.emit('new_message', clientID, inputData[0],
+            client.emit('new_message', inputData[0],
               (messageProcessed) => {
                 messageProcessed.should.equal(true)
               }
             )
-            client.emit('new_message', clientID, inputData[1],
+            client.emit('new_message', inputData[1],
               (messageProcessed) => {
                 messageProcessed.should.equal(true)
               }

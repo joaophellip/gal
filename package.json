@@ -4,6 +4,7 @@
   "description": "Setup of a simple service targetting Node14 with ESM",
   "main": "src/index.js",
   "scripts": {
+    "start": "node src/index.js --id=gal-messaging",
     "test": "c8 mocha --recursive --loader=quibble --timeout 4000"
   },
   "engines": {

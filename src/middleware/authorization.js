@@ -21,17 +21,21 @@ import * as common from '../util/common.js'
 export class Authorization {
 
   /**
-   * Validates a token inside socket. If token is valid forward connection else rejects it.
+   * Validates a bearer token passed along a socket.
+   * 
+   * Note that the authentication token is expected to be sent as an additional handshake header.
+   * 
    * @param {*} socket - socket object containing an authentication token.
    * @param {*} next - callback to either break logic for this route or continue to the next middleware.
    */
   static tokenValidation (socket, next) {
-    Logger.debug(`tokenValidation: ${socket.handshake.query.auth_token} ${common.authorizationToken}`)
-    if (socket.handshake.query.auth_token == common.authorizationToken) {
-      return next()
-    }
+    const jwtToken = socket.handshake.headers.authorization.split(' ')[1]
+    if (jwtToken == common.authorizationToken) return next()
+
     Logger.error('Unauthorized manager.')
-    next(new Error('Authentication error'))
+    const err = new Error('Authentication error.')
+    err.data = { content: 'Please send a valid credential' } 
+    next(err)
   }
 
 }

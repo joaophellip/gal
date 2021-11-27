@@ -27,34 +27,18 @@ const ajv = new Ajv({ allErrors: true, validateSchema: false })
 export default class Messenger {
 
     /**
-     * Handles event 'sync'. If processing is succesfull invoke callback passing true; false otherwise.
-     * Note: clientID might be passed along in handshake so to avoid this sync extra event.
-     * @param {*} clientID - the consumer/client ID received from downstream.
-     * @param {*} callback - callback to be invoked.
-     */
-    static handlerSync (clientID, callback) {
-        try {
-            // update socket IO reference
-            ServerConfig.clientSockets[clientID] = this
-            callback(true)
-        } catch (err) {
-            Logger.error(err)
-            callback(false)
-        }      
-    }
-
-    /**
      * Handles event 'start_chat'. If processing is succesfull invoke callback passing true; false otherwise.
-     * @param {*} senderID - the consumer/sender ID received from downstreams.
      * @param {*} data - the data sent by consumer. It has to match an expected schema.
      * @param {*} callback - callback to be invoked.
      */
-    static handlerStartChat (senderID, data, callback) {
+    static handlerStartChat (data, callback) {
         try {
+            const senderID = this.handshake.headers.clientid
+
             // validate data
             Logger.info(`processing new message from ${senderID}...`)
             const isValid = Messenger.#validateData(data, startChatInputData)
-            if (!isValid) callback(false)
+            if (!isValid) callback(false, {content: 'Unexpected data. Please send a valid data object'})
 
             // init internal structures and live bindings
             const chatID = crypto.randomBytes(20).toString('hex')
@@ -71,16 +55,17 @@ export default class Messenger {
 
     /**
      * Handles event 'new_message'. If processing is succesfull invoke callback passing true; false otherwise.
-     * @param {*} senderID - the consumer/sender ID received from downstreams.
      * @param {*} data - the data sent by consumer. It has to match an expected schema.
      * @param {*} callback - callback to be invoked.
      */
-    static handlerNewMessage (senderID, data, callback) {
+    static handlerNewMessage (data, callback) {
         try {
+            const senderID = this.handshake.headers.clientid
+
             // validate data
             Logger.info(`processing new message from ${senderID}...`)
             const isValid = Messenger.#validateData(data, newMessageInputData)
-            if (!isValid) callback(false)
+            if (!isValid) callback(false, {content: 'Unexpected data. Please send a valid data object'})
 
             // save new message
             const message = new Message(data.chatID, senderID, data.content)
@@ -102,18 +87,19 @@ export default class Messenger {
 
     /**
      * Handles event 'message_read'. If processing is succesfull invoke callback passing true; false otherwise.
-     * @param {*} senderID - the consumer/sender ID received from downstreams.
      * @param {*} data - the data sent by consumer. It has to match an expected schema.
      * @param {*} callback - callback to be invoked.
      */
-    static handlerMessageRead (senderID, data, callback) {
+    static handlerMessageRead (data, callback) {
         try {
+            const senderID = this.handshake.headers.clientid
+
             // validate data
             Logger.info(`processing message read from ${senderID}...`)
             const isValid = Messenger.#validateData(data, messageReadInputData)
-            if (!isValid) callback(false)
+            if (!isValid) callback(false, {content: 'Unexpected data. Please send a valid data object'})
 
-            // add senderID to readby list
+            // add senderID to readBy list
             Database.messages[data.chatID]
             Database.messagesMap[data.messageID].readyBy.push(senderID)
 
