@@ -21,12 +21,18 @@ import crypto from 'crypto'
 import quibble from 'quibble'
 import * as sinon from "sinon"
 
-function createClient (token) {
+function createClient (clientID, token) {
   return SocketClient.connect('http://localhost:8080', {
     forceNew: true,
     autoConnect: true,
-    // eslint-disable-next-line camelcase
-    query: { auth_token: token },
+    transportOptions: {
+      polling: {
+        extraHeaders: {
+          authorization: `Bearer ${token}`,
+          clientid: clientID
+        }
+      }
+    }
   })
 }
 
@@ -81,11 +87,11 @@ describe('Listener event "message_read"', function () {
         Module.ServerConfig.handler(ioServer)
         server.listen(8080)
 
-        const client = createClient(TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.valid_token)
 
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
-          client.emit('message_read', clientID, inputData,
+          client.emit('message_read', inputData,
             (messageProcessed) => {
               messageProcessed.should.equal(false)
               client.disconnect()
@@ -114,11 +120,11 @@ describe('Listener event "message_read"', function () {
         Module.ServerConfig.handler(ioServer)
         server.listen(8080)
 
-        const client = createClient(TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.valid_token)
 
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
-          client.emit('message_read', clientID, inputData,
+          client.emit('message_read', inputData,
             (messageProcessed) => {
               messageProcessed.should.equal(false)
               client.disconnect()
@@ -144,7 +150,7 @@ describe('Listener event "message_read"', function () {
 
         // start server and connect client
         await startServer(server)
-        const client = createClient(TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.valid_token)
 
         // register handlers and emit events
         return new Promise((rs, _) => {
@@ -157,7 +163,7 @@ describe('Listener event "message_read"', function () {
               data[0].readyBy.should.be.an.Array().and.have.length(0)
               // after receiving a first update, we are ready to emit a message_read event
               inputData.messageID = data[0].id
-              client.emit('message_read', clientID, inputData,
+              client.emit('message_read', inputData,
                 (messageProcessed) => {
                   messageProcessed.should.equal(true)
                 }
@@ -169,14 +175,11 @@ describe('Listener event "message_read"', function () {
             }
             messagesProcessed += 1
           })
-          // first, we must sync, start a chat, and send a test message
-          client.emit('sync', clientID, (messageProcessed) => {
-            messageProcessed.should.equal(true)
-          })
-          client.emit('start_chat', clientID, {counterpartyID: crypto.randomBytes(20).toString('hex')}, (...data) => {
+          // first, we must start a chat and send a test message
+          client.emit('start_chat', {counterpartyID: crypto.randomBytes(20).toString('hex')}, (...data) => {
             inputData.chatID = data[1]  // sync chatID created at server
             testMessage.chatID = data[1]  // sync chatID created at server
-            client.emit('new_message', clientID, testMessage,
+            client.emit('new_message', testMessage,
               (messageProcessed) => {
                 messageProcessed.should.equal(true)
               }

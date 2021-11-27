@@ -28,12 +28,13 @@ export default class Messenger {
 
     /**
      * Handles event 'start_chat'. If processing is succesfull invoke callback passing true; false otherwise.
-     * @param {*} senderID - the consumer/sender ID received from downstreams.
      * @param {*} data - the data sent by consumer. It has to match an expected schema.
      * @param {*} callback - callback to be invoked.
      */
-    static handlerStartChat (senderID, data, callback) {
+    static handlerStartChat (data, callback) {
         try {
+            const senderID = this.handshake.headers.clientid
+
             // validate data
             Logger.info(`processing new message from ${senderID}...`)
             const isValid = Messenger.#validateData(data, startChatInputData)
@@ -54,12 +55,13 @@ export default class Messenger {
 
     /**
      * Handles event 'new_message'. If processing is succesfull invoke callback passing true; false otherwise.
-     * @param {*} senderID - the consumer/sender ID received from downstreams.
      * @param {*} data - the data sent by consumer. It has to match an expected schema.
      * @param {*} callback - callback to be invoked.
      */
-    static handlerNewMessage (senderID, data, callback) {
+    static handlerNewMessage (data, callback) {
         try {
+            const senderID = this.handshake.headers.clientid
+
             // validate data
             Logger.info(`processing new message from ${senderID}...`)
             const isValid = Messenger.#validateData(data, newMessageInputData)
@@ -85,12 +87,13 @@ export default class Messenger {
 
     /**
      * Handles event 'message_read'. If processing is succesfull invoke callback passing true; false otherwise.
-     * @param {*} senderID - the consumer/sender ID received from downstreams.
      * @param {*} data - the data sent by consumer. It has to match an expected schema.
      * @param {*} callback - callback to be invoked.
      */
-    static handlerMessageRead (senderID, data, callback) {
+    static handlerMessageRead (data, callback) {
         try {
+            const senderID = this.handshake.headers.clientid
+
             // validate data
             Logger.info(`processing message read from ${senderID}...`)
             const isValid = Messenger.#validateData(data, messageReadInputData)

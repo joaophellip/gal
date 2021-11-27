@@ -34,7 +34,7 @@ export class ServerConfig {
     // hooks callback for main event 'connection'
     ioServer.on('connection', socket => {
 
-      const clientID = socket.handshake.headers.clientID
+      const clientID = socket.handshake.headers.clientid
       Logger.info(`connecting ${clientID} through socket ${socket.id}.`)
       ServerConfig.clientSockets[clientID] = socket
 

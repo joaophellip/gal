@@ -48,13 +48,14 @@ const cmd = createInterface({
   prompt: 'CLI>'
 })
 
-function connectToService (host, port, _) {
+function connectToService (host, port, clientID) {
   const token = 'M2IBCgKCAQEAsxIBOOvbXuCyPelkG1FZQblPFzgxaqZSZXXcOW7bji4tDl00yrlmLL6+3sBRwexEauQZtBuuvEwLRr9LD8dp6DgLkgxF4mVWSLF9/RHwCy67m6yovU4UzhNQKYTgAjmn+dsFrp+WDzq6tfz6x83PlsTdzjGb9ugRe+3FcL8JnRI5LRoDUoPTd441osddiI8n+laWVncYmrVEyD/M/d9+90vlSGilDJeyKHnRtMEqBxK9fCMKrpIN39MJKxSW9PUEgb2nz0LvA20vud/7YN+pIC200Q2P2ZeVH2DZfHFrgnkYIR/JcdjqJPPooj/d/ai/Yy4wd5PeyJDnjBhoA8uMWQIDAQC1'
   const client = SocketClient.connect(`${host}:${port}`, {
     transportOptions: {
       polling: {
         extraHeaders: {
           authorization: `Bearer ${token}`,
+          clientid: clientID
         }
       }
     }

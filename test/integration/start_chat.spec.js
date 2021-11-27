@@ -21,13 +21,19 @@ import crypto from 'crypto'
 import quibble from 'quibble'
 import * as sinon from "sinon"
 
-function createClient (token) {
+function createClient (clientID, token) {
   return SocketClient.connect('http://localhost:8080', {
     forceNew: true,
     autoConnect: true,
-    // eslint-disable-next-line camelcase
-    query: { auth_token: token },
-  });
+    transportOptions: {
+      polling: {
+        extraHeaders: {
+          authorization: `Bearer ${token}`,
+          clientid: clientID
+        }
+      }
+    }
+  })
 }
 
 describe('Listen for event "start_chat"', function () {
@@ -73,11 +79,10 @@ describe('Listen for event "start_chat"', function () {
         Module.ServerConfig.handler(ioServer)
         server.listen(8080)
 
-        const client = createClient(TEST_TOKENS.valid_token)
-
         return new Promise((rs, _) => {
-          client.on('disconnect', () => {rs()})
-          client.emit('start_chat', clientID, inputData,
+          const client = createClient(clientID, TEST_TOKENS.valid_token)
+          client.on('disconnect', () => rs())
+          client.emit('start_chat', inputData,
             (messageProcessed) => {
               messageProcessed.should.equal(true)
               Object.keys(messagesStub).should.have.length(1)
@@ -102,11 +107,11 @@ describe('Listen for event "start_chat"', function () {
         Module.ServerConfig.handler(ioServer)
         server.listen(8080)
 
-        const client = createClient(TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.valid_token)
 
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
-          client.emit('start_chat', clientID, inputData,
+          client.emit('start_chat', inputData,
             (messageProcessed) => {
               messageProcessed.should.equal(false)
               client.disconnect()
@@ -133,11 +138,11 @@ describe('Listen for event "start_chat"', function () {
         Module.ServerConfig.handler(ioServer)
         server.listen(8080)
 
-        const client = createClient(TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.valid_token)
 
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
-          client.emit('start_chat', clientID, inputData,
+          client.emit('start_chat', inputData,
             (messageProcessed) => {
               messageProcessed.should.equal(false)
               client.disconnect()
