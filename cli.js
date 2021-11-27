@@ -30,7 +30,7 @@ const commands = [
   },
   {
     name: 'new_message',
-    description: 'ex: sends a message; new_message {"chatID": "abc", "content": "Hi there"} '
+    description: 'ex: sends a message; new_message {"chatID": "abc", "content": "Hello"} '
   },
   {
     name: 'message_read',
@@ -69,12 +69,15 @@ function disconnectFromService () {
 }
 
 function handleEmitEvent (client, eventName, payload) {
-  client.emit(eventName, payload, (processed) => {
+  client.emit(eventName, JSON.parse(payload), (...data) => {
+    const processed = data[0]
     if (processed) {
       console.log(`event ${eventName} processed successfully.`)
     } else {
       console.log(`server failed to process event ${eventName}.`)
     }
+    if (data[1]) console.log(data[1])
+    cmd.prompt()
   })
 }
 
@@ -99,7 +102,6 @@ let client = null
 cmd.prompt()
 
 cmd.on('line', async (line) => {
-  console.log(line)
   const params = line.trim().split(' ')
   const eventName = params[0]
   if (eventName === 'exit') {
@@ -127,7 +129,7 @@ cmd.on('line', async (line) => {
       args = params.slice(1).join('')
     }
     console.log(`event ${eventName}; payload ${args}`)
-    handleEmitEvent(client, args)
+    handleEmitEvent(client, eventName, args)
   } else if (eventName === 'disconnect') {
     if (client == null) {
       console.log('It looks like you are not connected. Have you tried "connect :id"?')

@@ -51,8 +51,7 @@ describe('Listener event "new_message"', function () {
       process.env.ENV = 'TESTING'
       process.env.AUTH_TOKEN = 'test_auth_token'
       TEST_TOKENS = {
-        // eslint-disable-next-line camelcase
-        valid_token: process.env.AUTH_TOKEN
+        validToken: process.env.AUTH_TOKEN
       }
     })
 
@@ -83,14 +82,17 @@ describe('Listener event "new_message"', function () {
 
         // start server and connect client
         await startServer(server)
-        const client = createClient(clientID, TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.validToken)
 
         // emit event and wait response
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
           client.emit('new_message', inputData,
-            (messageProcessed) => {
+            (...data) => {
+              const messageProcessed = data[0]
+              const err = data[1]
               messageProcessed.should.equal(false)
+              err.content.should.equal('Unexpected data. Please send a valid data object')
               client.disconnect()
             }
           )
@@ -115,7 +117,7 @@ describe('Listener event "new_message"', function () {
 
         // start server and connect client
         await startServer(server)
-        const client = createClient(clientID, TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.validToken)
 
         // emit event and wait response
         return new Promise((rs, _) => {
@@ -142,7 +144,7 @@ describe('Listener event "new_message"', function () {
 
         // start server and connect client
         await startServer(server)
-        const client = createClient(clientID, TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.validToken)
 
         // register handlers and emit events
         return new Promise((rs, _) => {
@@ -184,7 +186,7 @@ describe('Listener event "new_message"', function () {
 
         // start server and connect client
         await startServer(server)
-        const client = createClient(clientID, TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.validToken)
 
         // register handlers and emit events
         return new Promise((rs, _) => {

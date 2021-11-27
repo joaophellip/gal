@@ -44,8 +44,7 @@ describe('Listen for event "start_chat"', function () {
       process.env.ENV = 'TESTING'
       process.env.AUTH_TOKEN = 'test_auth_token'
       TEST_TOKENS = {
-        // eslint-disable-next-line camelcase
-        valid_token: process.env.AUTH_TOKEN
+        validToken: process.env.AUTH_TOKEN
       }
     })
 
@@ -64,36 +63,8 @@ describe('Listen for event "start_chat"', function () {
     afterEach(function () {
       server.close()
       quibble.reset()
-    });
-
-    describe('receives event "start_chat" from a client and sucessfully processes it', function () {
-      it('should emit true in the callback interface back to client', async function () {
-
-        const clientID = crypto.randomBytes(20).toString('hex')
-        const inputData = {
-          counterpartyID: crypto.randomBytes(10).toString('hex'),
-        }
-
-        const Module = await import('../../src/server-config.js')
-        const ioServer = new IOServer.Server(server, { cookie: false })
-        Module.ServerConfig.handler(ioServer)
-        server.listen(8080)
-
-        return new Promise((rs, _) => {
-          const client = createClient(clientID, TEST_TOKENS.valid_token)
-          client.on('disconnect', () => rs())
-          client.emit('start_chat', inputData,
-            (messageProcessed) => {
-              messageProcessed.should.equal(true)
-              Object.keys(messagesStub).should.have.length(1)
-              Object.keys(activeChatsStub).should.have.length(1)
-              client.disconnect()
-            }
-          )
-        })
-
-      })
     })
+
 
     describe('receives event "start_chat" from a client with an expected data structure', function () {
       it('should emit false in the callback interface back to client', async function () {
@@ -107,13 +78,16 @@ describe('Listen for event "start_chat"', function () {
         Module.ServerConfig.handler(ioServer)
         server.listen(8080)
 
-        const client = createClient(clientID, TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.validToken)
 
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
           client.emit('start_chat', inputData,
-            (messageProcessed) => {
+            (...data) => {
+              const messageProcessed = data[0]
+              const err = data[1]
               messageProcessed.should.equal(false)
+              err.content.should.equal('Unexpected data. Please send a valid data object')
               client.disconnect()
             }
           )
@@ -138,7 +112,7 @@ describe('Listen for event "start_chat"', function () {
         Module.ServerConfig.handler(ioServer)
         server.listen(8080)
 
-        const client = createClient(clientID, TEST_TOKENS.valid_token)
+        const client = createClient(clientID, TEST_TOKENS.validToken)
 
         return new Promise((rs, _) => {
           client.on('disconnect', () => {rs()})
@@ -152,4 +126,34 @@ describe('Listen for event "start_chat"', function () {
 
       })
     })
+
+    describe('receives event "start_chat" from a client and sucessfully processes it', function () {
+      it('should emit true in the callback interface back to client', async function () {
+
+        const clientID = crypto.randomBytes(20).toString('hex')
+        const inputData = {
+          counterpartyID: crypto.randomBytes(10).toString('hex'),
+        }
+
+        const Module = await import('../../src/server-config.js')
+        const ioServer = new IOServer.Server(server, { cookie: false })
+        Module.ServerConfig.handler(ioServer)
+        server.listen(8080)
+
+        return new Promise((rs, _) => {
+          const client = createClient(clientID, TEST_TOKENS.validToken)
+          client.on('disconnect', () => rs())
+          client.emit('start_chat', inputData,
+            (messageProcessed) => {
+              messageProcessed.should.equal(true)
+              Object.keys(messagesStub).should.have.length(1)
+              Object.keys(activeChatsStub).should.have.length(1)
+              client.disconnect()
+            }
+          )
+        })
+
+      })
+    })
+
 })

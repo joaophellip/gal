@@ -38,7 +38,7 @@ export default class Messenger {
             // validate data
             Logger.info(`processing new message from ${senderID}...`)
             const isValid = Messenger.#validateData(data, startChatInputData)
-            if (!isValid) callback(false)
+            if (!isValid) callback(false, {content: 'Unexpected data. Please send a valid data object'})
 
             // init internal structures and live bindings
             const chatID = crypto.randomBytes(20).toString('hex')
@@ -65,7 +65,7 @@ export default class Messenger {
             // validate data
             Logger.info(`processing new message from ${senderID}...`)
             const isValid = Messenger.#validateData(data, newMessageInputData)
-            if (!isValid) callback(false)
+            if (!isValid) callback(false, {content: 'Unexpected data. Please send a valid data object'})
 
             // save new message
             const message = new Message(data.chatID, senderID, data.content)
@@ -97,7 +97,7 @@ export default class Messenger {
             // validate data
             Logger.info(`processing message read from ${senderID}...`)
             const isValid = Messenger.#validateData(data, messageReadInputData)
-            if (!isValid) callback(false)
+            if (!isValid) callback(false, {content: 'Unexpected data. Please send a valid data object'})
 
             // add senderID to readBy list
             Database.messages[data.chatID]
