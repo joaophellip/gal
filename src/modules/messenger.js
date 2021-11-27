@@ -27,23 +27,6 @@ const ajv = new Ajv({ allErrors: true, validateSchema: false })
 export default class Messenger {
 
     /**
-     * Handles event 'sync'. If processing is succesfull invoke callback passing true; false otherwise.
-     * Note: clientID might be passed along in handshake so to avoid this sync extra event.
-     * @param {*} clientID - the consumer/client ID received from downstream.
-     * @param {*} callback - callback to be invoked.
-     */
-    static handlerSync (clientID, callback) {
-        try {
-            // update socket IO reference
-            ServerConfig.clientSockets[clientID] = this
-            callback(true)
-        } catch (err) {
-            Logger.error(err)
-            callback(false)
-        }      
-    }
-
-    /**
      * Handles event 'start_chat'. If processing is succesfull invoke callback passing true; false otherwise.
      * @param {*} senderID - the consumer/sender ID received from downstreams.
      * @param {*} data - the data sent by consumer. It has to match an expected schema.
