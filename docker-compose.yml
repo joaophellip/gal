@@ -5,7 +5,7 @@ services:
     command: npm start
     restart: always
     ports:
-      - 3009:${SERVER_PORT}
+      - ${EXPOSED_PORT}:${SERVER_PORT}
     env_file:
       - .env
     volumes:

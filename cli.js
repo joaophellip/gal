@@ -1,3 +1,17 @@
+//  Copyright 2021 joaophellip
+ 
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+ 
+//      http://www.apache.org/licenses/LICENSE-2.0
+ 
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+
 import * as SocketClient from 'socket.io-client'
 import { createInterface } from 'readline'
 
@@ -35,7 +49,7 @@ const cmd = createInterface({
 })
 
 function connectToService (host, port, _) {
-  const token = 'TESTE'
+  const token = 'M2IBCgKCAQEAsxIBOOvbXuCyPelkG1FZQblPFzgxaqZSZXXcOW7bji4tDl00yrlmLL6+3sBRwexEauQZtBuuvEwLRr9LD8dp6DgLkgxF4mVWSLF9/RHwCy67m6yovU4UzhNQKYTgAjmn+dsFrp+WDzq6tfz6x83PlsTdzjGb9ugRe+3FcL8JnRI5LRoDUoPTd441osddiI8n+laWVncYmrVEyD/M/d9+90vlSGilDJeyKHnRtMEqBxK9fCMKrpIN39MJKxSW9PUEgb2nz0LvA20vud/7YN+pIC200Q2P2ZeVH2DZfHFrgnkYIR/JcdjqJPPooj/d/ai/Yy4wd5PeyJDnjBhoA8uMWQIDAQC1'
   const client = SocketClient.connect(`${host}:${port}`, {
     transportOptions: {
       polling: {
@@ -64,8 +78,11 @@ function handleEmitEvent (client, eventName, payload) {
 }
 
 function setupClient (client) {
+  client.on('connect_error', (e) => {
+    console.log('Oups... a connection error', e)    
+  })
   client.on('error', (e) => {
-    console.log('Oops something went wrong', e)
+    console.log('Oups something went wrong', e)
   })
   client.on('disconnect', () => {
     console.log('Server has died :(')
@@ -93,7 +110,7 @@ cmd.on('line', async (line) => {
     console.log(`clientID: ${clientID}`)
     client = await connectToService(
       'http://localhost',
-      '8080',
+      '3009',
       clientID,
     )
     setupClient(client)
