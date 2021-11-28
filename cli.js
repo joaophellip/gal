@@ -17,24 +17,24 @@ import { createInterface } from 'readline'
 
 const commands = [
   {
-    name: 'exit',
-    description: 'disconects client'
-  },
-  {
     name: 'connect',
-    description: 'ex: connects to server; ex: connect :user '
+    description: 'connects to server. ex: connect :user '
   },
   {
     name: 'start_chat',
-    description: 'ex: starts a chat; ex: start_chat {"counterpartyID": "user002"} '
+    description: 'starts a chat. ex: start_chat {"counterpartyID": "user002"} '
   },
   {
     name: 'new_message',
-    description: 'ex: sends a message; new_message {"chatID": "abc", "content": "Hello"} '
+    description: 'sends a message. ex: new_message {"chatID": "abc", "content": "Hello"} '
   },
   {
     name: 'message_read',
-    description: 'ex: signals message was read; message_read {"chatID": "abc", "messageID": "abc"} '
+    description: 'signals message was read. ex: message_read {"chatID": "abc", "messageID": "def"} '
+  },
+  {
+    name: 'exit',
+    description: 'disconects client'
   }
 ]
 
