@@ -48,4 +48,4 @@ In order to start the CLI, run:
 
 Then use the command help to see the possible ways to interact with the server:
 
-![node-cli](https://github.com/joaophellip/gal/blob/readme/node-cli.png?raw=true)
+![node-cli](https://github.com/joaophellip/gal/blob/readme/node-cli-usage.png?raw=true)
