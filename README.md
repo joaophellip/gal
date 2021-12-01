@@ -40,7 +40,7 @@ Once this initial setup is passed, simple run the following command on the root 
 
 You should see these lines in your terminal, meaning your server is up and running:
 
-![docker-compose up](https://github.com/joaophellip/gal/blob/readme/docker-compose-up.png?raw=true)
+![docker-compose up](https://github.com/joaophellip/gal/blob/develop/docker-compose-up.png?raw=true)
 
 In order to start the CLI, run:
 
@@ -48,4 +48,4 @@ In order to start the CLI, run:
 
 Then use the command help to see the possible ways to interact with the server:
 
-![node-cli](https://github.com/joaophellip/gal/blob/readme/node-cli-usage.png?raw=true)
+![node-cli](https://github.com/joaophellip/gal/blob/develop/node-cli-usage.png?raw=true)
